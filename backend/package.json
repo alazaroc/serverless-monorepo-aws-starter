@@ -1,0 +1,39 @@
+{
+  "name": "@serverless-monorepo-aws-starter/backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend Lambda services for the serverless monorepo AWS starter (domain-oriented)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/client-s3": "^3.400.0",
+    "@aws-sdk/client-ses": "^3.400.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.400.0",
+    "@aws-sdk/lib-dynamodb": "^3.400.0",
+    "fast-check": "^3.13.0",
+    "qrcode": "^1.5.3",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@types/qrcode": "^1.5.2",
+    "@types/xml2js": "^0.4.11",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^9.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.1.0"
+  }
+}
