@@ -1,528 +1,175 @@
-# AWS Serverless Monorepo Starter
+# Serverless Monorepo AWS Starter
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18-61dafb)](https://reactjs.org/)
-[![AWS CDK](https://img.shields.io/badge/AWS%20CDK-2.160-orange)](https://aws.amazon.com/cdk/)
-[![Vite](https://img.shields.io/badge/Vite-5-646cff)](https://vitejs.dev/)
-[![Author](https://img.shields.io/badge/Author-Alejandro%20L%C3%A1zaro-blue)](https://playingaws.com)
+A production-ready skeleton for a full-stack serverless web app on AWS. Clone it, replace two placeholders, deploy, and spend your time on the **product** — not on the plumbing.
 
-A production-ready serverless monorepo starter for building modern web applications on AWS. Get your project up and running in minutes with a fully configured stack including React frontend, Lambda backend, and Infrastructure as Code.
+## Why use this instead of starting from scratch?
 
-## 📋 Table of Contents
+Wiring up the scaffolding of a serverless app (auth with MFA, IaC, CI/CD, deploys, PWA, conventions) takes **days or weeks** before you write a single line of your actual product. Here it's already done and verified green. What you get for free:
 
-- [AWS Serverless Monorepo Starter](#aws-serverless-monorepo-starter)
-  - [📋 Table of Contents](#-table-of-contents)
-  - [🎯 Why Use This Starter?](#-why-use-this-starter)
-    - [Skip the Setup, Start Building](#skip-the-setup-start-building)
-    - [Production-Ready Architecture](#production-ready-architecture)
-    - [Perfect For](#perfect-for)
-  - [🚀 Quick Start](#-quick-start)
-    - [Prerequisites](#prerequisites)
-    - [Get Started in 3 Steps](#get-started-in-3-steps)
-  - [📦 What's Inside](#-whats-inside)
-    - [Frontend (`frontend/`)](#frontend-frontend)
-    - [Backend (`backend/`)](#backend-backend)
-    - [Infrastructure (`infra/cdk/`)](#infrastructure-infracdk)
-  - [🏗️ Architecture](#️-architecture)
-  - [📁 Project Structure](#-project-structure)
-  - [🛠️ Common Tasks](#️-common-tasks)
-    - [Development](#development)
-    - [Frontend Development](#frontend-development)
-    - [Backend Development](#backend-development)
-    - [Infrastructure](#infrastructure)
-  - [🔧 Customization Guide](#-customization-guide)
-    - [Adding a New Backend Service](#adding-a-new-backend-service)
-    - [Adding AWS Resources](#adding-aws-resources)
-    - [Environment Variables](#environment-variables)
-  - [🧪 Testing](#-testing)
-    - [Unit Tests](#unit-tests)
-    - [E2E Tests](#e2e-tests)
-    - [Infrastructure Tests](#infrastructure-tests)
-  - [🚢 Deployment](#-deployment)
-    - [Development Environment](#development-environment)
-    - [Production Environment](#production-environment)
-    - [CI/CD Integration](#cicd-integration)
-  - [💡 Tips \& Best Practices](#-tips--best-practices)
-    - [Development Workflow](#development-workflow)
-    - [Cost Optimization](#cost-optimization)
-    - [Security](#security)
-  - [🤝 Contributing](#-contributing)
-  - [📄 License](#-license)
-  - [👤 Author](#-author)
-  - [🙏 Acknowledgments](#-acknowledgments)
-  - [📚 Resources](#-resources)
-  - [💬 Support](#-support)
+- **Real authentication**: Cognito with mandatory TOTP MFA, roles, and a complete login flow (change password, reset, TOTP setup). Not a _hello world_.
+- **Infrastructure as code**: 4 CDK stacks (DynamoDB, Cognito, API Gateway HTTP API + ARM64 Lambdas, CloudFront + private S3 with OAC and security headers), reproducible across `test` and `prod`.
+- **CI/CD**: GitHub Actions pipeline with OIDC (no secrets), `lint → test → build → deploy` automatically per branch.
+- **Incremental deploys**: only redeploys what changed (hash-based fingerprint).
+- **PWA frontend**: React + Vite + Tailwind, installable, with a controlled update prompt and iOS safe-area support.
+- **Conventions and quality**: monorepo with shared types, ESLint/Prettier, husky, tests, and a domain pattern (ownership + sharing) ready to copy.
 
----
+**The philosophy:** the skeleton is _commodity_ — it should be boring, stable, and rarely touched. The value lives in the idea/product you build on top. And because all your apps share the same structure, jumping between them and maintaining them is trivial.
 
-## 🎯 Why Use This Starter?
+## Stack
 
-### Skip the Setup, Start Building
+- **Frontend**: React 18 + Vite 8 + TypeScript + Tailwind 3.4, PWA via `vite-plugin-pwa` (`registerType: "prompt"`), AWS Amplify (Cognito) auth, `react-router-dom` v6, iOS safe-area.
+- **Backend**: Lambda (Node.js 22, ARM64) in TypeScript ESM, AWS SDK v3, validation with `zod`, JWT verification with `aws-jwt-verify`. One handler per domain.
+- **Infra**: AWS CDK (`aws-cdk-lib` ^2.258) — `storage` (DynamoDB), `auth` (Cognito + TOTP MFA), `api` (API Gateway HTTP API + Lambdas), `frontend` (private S3 + CloudFront with OAC and security headers).
+- **Shared**: `@app/shared` workspace with types, constants, and zod schemas shared between front and back.
+- **Tooling**: unified Makefile, hash-based incremental deploy, GitHub Actions pipeline (OIDC), husky, ESLint 9, Prettier.
 
-Setting up a serverless monorepo from scratch can take days. This starter gives you:
+Default region targets `eu-south-2` (configurable). Environments: `test` and `prod`.
 
-- **Pre-configured Monorepo**: npm workspaces with proper TypeScript configuration
-- **Modern Frontend**: Vite + React 18 + Tailwind CSS with hot reload
-- **Serverless Backend**: Domain-oriented Lambda functions ready to deploy
-- **Infrastructure as Code**: AWS CDK stacks with best practices baked in
-- **Testing Ready**: Vitest, Playwright, and Jest already configured
-- **Code Quality**: ESLint, Prettier, and TypeScript strict mode
-- **CI/CD Ready**: Structured for easy GitHub Actions or AWS CodePipeline integration
+## Structure
 
-### Production-Ready Architecture
-
-This isn't a toy project. It's built with real-world patterns:
-
-- **Domain-Oriented Design**: Backend organized by business domains, not technical layers
-- **Type Safety**: End-to-end TypeScript with shared types between frontend and backend
-- **Scalable Structure**: Clear separation of concerns that grows with your team
-- **AWS Best Practices**: CDK constructs following AWS Well-Architected Framework
-- **Developer Experience**: Fast builds, hot reload, and instant feedback loops
-
-### Perfect For
-
-- Building MVPs and prototypes quickly
-- Starting new serverless projects with confidence
-- Learning AWS serverless architecture
-- Creating internal tools and dashboards
-- Hackathons and competitions
-- Side projects that might scale
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js >= 18.0.0
-- npm >= 9.0.0
-- AWS CLI configured with credentials
-- AWS CDK CLI: `npm install -g aws-cdk`
-
-### Get Started in 3 Steps
-
-1. **Clone and Install**
-
-```bash
-git clone https://github.com/alazaroc/aws-serverless-monorepo-starter.git my-project
-cd my-project
-npm install
+```
+.
+├── shared/             # @app/shared — types, constants, zod schemas
+├── frontend/           # React SPA (Vite + Tailwind + PWA + Amplify)
+├── backend/            # Lambda handlers per domain (items, shares, users)
+├── infra/cdk/          # CDK: storage + auth + api + frontend stacks
+├── scripts/            # deploy.sh, create-user.sh, set-password.sh, dev-frontend.sh
+├── .github/workflows/  # pipeline.yml (lint → test → build → deploy)
+├── Makefile            # unified command interface
+└── tsconfig.base.json  # shared TypeScript config
 ```
 
-2. **Start Development**
+The `Item` entity (+ `shares`, `users` management) is a **generic example**: it demonstrates per-user ownership, read/write sharing, CRUD, and validation. Replace it with your real domain.
 
-```bash
-# Terminal 1: Start frontend dev server
-cd frontend
-npm run dev
+## Getting started
 
-# Terminal 2: Build backend (optional during development)
-cd backend
-npm run build
-```
+1. **Create your repo from this template.** On GitHub: mark this repo as a _Template repository_, then use **"Use this template" → Create a new repository** (clean repo, no history). Alternative: `git clone`, delete `.git`, `git init`.
 
-3. **Deploy to AWS**
+2. **Replace the placeholders.** There are only two tokens in the whole repo:
+   - `{{PROJECT_NAME}}` — your project name (lowercase slug, e.g. `my-app`). Used in AWS resource names, so it must be valid: lowercase letters, digits, and hyphens.
+   - `{{AWS_REGION}}` — your AWS region (e.g. `eu-south-2`).
 
-```bash
-# Bootstrap CDK (first time only)
-cd infra/cdk
-cdk bootstrap
+   Replace them across the tree:
 
-# Deploy everything
-npm run deploy
-```
+   ```bash
+   # macOS
+   grep -rl '{{PROJECT_NAME}}' . --exclude-dir=node_modules --exclude-dir=.git \
+     | xargs sed -i '' 's/{{PROJECT_NAME}}/my-app/g'
+   grep -rl '{{AWS_REGION}}' . --exclude-dir=node_modules --exclude-dir=.git \
+     | xargs sed -i '' 's/{{AWS_REGION}}/eu-south-2/g'
+   ```
 
-That's it! Your app is live on AWS.
+   > Internal package names use the fixed `@app/*` scope and do **not** need renaming.
 
----
+That's it. The rest of the flow (install, deploy, first user, develop) is the checklist below.
 
-## 📦 What's Inside
+## Next steps (checklist)
 
-### Frontend (`frontend/`)
+Once cloned and with placeholders replaced:
 
-Modern React application with everything you need:
+- [ ] `npm install && npm run build` is green.
+- [ ] `cdk bootstrap aws://<account>/<region>` in your account (once).
+- [ ] `make deploy ENV=test` — first deploy (creates Cognito, DynamoDB, API, CloudFront).
+- [ ] `make create-admin EMAIL=you@email.com PASSWORD='Temp.123!' ENV=test` — your first user.
+- [ ] `make dev-env && make dev` — run the frontend locally against the real backend.
+- [ ] Log in, change the password, set up TOTP MFA. You'll see the `Item` CRUD working.
+- [ ] (Optional, CI/CD) create the `AWS_ROLE_FOR_GITHUB_DEPLOYMENTS` variable and the `test`/`prod` environments in your repo.
+- [ ] **Start building your product** → next section.
 
-- **Vite 5**: Lightning-fast dev server and optimized builds
-- **React 18**: Latest React with hooks and concurrent features
-- **TypeScript**: Full type safety
-- **Tailwind CSS**: Utility-first styling
-- **Vitest**: Fast unit testing
-- **Playwright**: E2E testing with browser automation
+## Build your product with AI
 
-### Backend (`backend/`)
+The architecture is already solved. From here you only define your **business domain** and let the AI (Kiro, etc.) generate code following the existing patterns. The key: `Item` + `shares` + `users` is a **reference template** — the AI must imitate that pattern, not invent a new one.
 
-Serverless Lambda functions organized by domain:
+### Recommended flow
 
-- **Domain-Oriented Structure**: Organize by business logic, not tech stack
-- **AWS SDK v3**: Latest AWS SDK with modular imports
-- **TypeScript**: Compiled to optimized JavaScript
-- **Jest**: Unit testing with mocks
-- **Example Service**: Template for your own services
+1. Open the personalized repo with your AI agent.
+2. Give it the prompt below, filling in your idea and entities.
+3. Have it **propose the data model + API routes first**, and review before it writes code.
+4. After each batch of changes, require `npm run build` and `npm run validate` to stay green.
 
-### Infrastructure (`infra/cdk/`)
-
-AWS CDK for Infrastructure as Code:
-
-- **TypeScript CDK**: Type-safe infrastructure definitions
-- **Modular Stacks**: Separate stacks for frontend, backend, and shared resources
-- **Best Practices**: Security, monitoring, and cost optimization built-in
-- **Easy Customization**: Add DynamoDB, S3, Cognito, and more with CDK constructs
-
----
-
-## 🏗️ Architecture
+### Starter prompt (copy it and fill in the `<...>`)
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│                     CloudFront CDN                      │
-│                  (Static Site Hosting)                  │
-└────────────────────┬────────────────────────────────────┘
-                     │
-         ┌───────────┴───────────┐
-         │                       │
-    ┌────▼─────┐          ┌─────▼──────┐
-    │    S3    │          │ API Gateway│
-    │ (React)  │          │   (REST)   │
-    └──────────┘          └─────┬──────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │                       │
-              ┌─────▼──────┐         ┌─────▼──────┐
-              │  Lambda    │         │  Lambda    │
-              │ (Service 1)│         │ (Service 2)│
-              └─────┬──────┘         └─────┬──────┘
-                    │                      │
-              ┌─────▼──────────────────────▼─────┐
-              │         DynamoDB / S3 / SES      │
-              │      (Add as needed via CDK)     │
-              └──────────────────────────────────┘
+You are working on the serverless-monorepo-aws-starter. Do NOT change the architecture
+or tooling; imitate the existing patterns. Mandatory reference: the example entity `Item`
+(+ `shares` + `users` management).
+
+Architecture:
+- shared/  (@app/shared): shared types, constants, and zod schemas.
+- backend/ (Lambda TS ESM, AWS SDK v3, zod, aws-jwt-verify): one handler per domain in
+  src/handlers/, utilities in src/lib/ (ownership + shares auth, response, dynamo).
+- infra/cdk/: storage-stack (DynamoDB), auth-stack (Cognito MFA), api-stack (HTTP API + ARM64
+  Node22 Lambdas), frontend-stack (S3 + CloudFront). Naming: {project}-{domain}-{env}.
+- frontend/ (React 18 + Vite + Tailwind + Amplify): pages in src/pages/, client in src/lib/api.ts,
+  session in src/context/AuthContext.tsx.
+
+MY PRODUCT: <describe in 2-3 sentences what your web app does>.
+DOMAIN ENTITIES: <list your entities and fields, e.g. "Project{name,status,date}, Task{...}">.
+RELATIONSHIPS / OWNERSHIP: <who owns what, what is shared, what is public>.
+ROLES: <e.g. ADMIN / USER, or your own>.
+
+Tasks (in this order, asking me for OK between step 1 and 2):
+1. Propose the data model (DynamoDB tables, PK/SK, GSIs) and the API routes. Wait for my approval.
+2. In shared/: replace `Item` with my entities (types + constants + zod schemas).
+3. In backend/src/handlers/: create the CRUD handlers following the items.ts and shares.ts pattern
+   (zod validation, ownership/shares authorization, responses from lib/response).
+4. In infra/cdk/: declare the tables in storage-stack.ts and the routes/Lambdas in api-stack.ts
+   (with their IAM grants and GSIs, as in the example).
+5. In frontend/src/pages/: create the pages using lib/api.ts and AuthContext; add routes in App.tsx.
+6. Remove the `Item` example once it's no longer used.
+
+Rules:
+- Keep `npm run build` and `npm run validate` green after each batch.
+- Do not add new libraries without justifying them.
+- Respect the existing code style and file structure.
 ```
 
----
+> Tip: start with ONE entity and its full-stack CRUD (shared → backend → infra → frontend),
+> deploy it, confirm it works, and only then add the next one. Iterating vertically avoids
+> ending up with half a backend and no UI.
 
-## 📁 Project Structure
+## Deployment
 
-```text
-my-project/
-├── frontend/              # React + Vite application
-│   ├── src/
-│   │   ├── App.tsx       # Main component
-│   │   ├── main.tsx      # Entry point
-│   │   └── test/         # Test utilities
-│   ├── tests/e2e/        # Playwright tests
-│   └── package.json
-│
-├── backend/              # Lambda functions
-│   ├── services/
-│   │   └── example/      # Example service (template)
-│   └── package.json
-│
-├── infra/cdk/            # AWS CDK infrastructure
-│   ├── bin/              # CDK app entry
-│   ├── lib/              # Stack definitions
-│   └── package.json
-│
-└── package.json          # Root workspace config
-```
-
----
-
-## 🛠️ Common Tasks
-
-### Development
+Requirements: AWS CLI configured and `cdk bootstrap` run in your account/region.
 
 ```bash
-# Install all dependencies
-npm install
-
-# Build all workspaces
-npm run build
-
-# Run all tests
-npm run test
-
-# Lint all code
-npm run lint
-
-# Format all code
-npm run format
+make deploy ENV=test               # deploy infra + frontend to test
+make deploy ENV=prod               # to prod
+make deploy-backend ENV=test       # CDK only
+make deploy-frontend ENV=test      # frontend only (build + S3 sync + CloudFront invalidation)
+FORCE_DEPLOY=true make deploy       # ignore the incremental hash cache
 ```
 
-### Frontend Development
+`scripts/deploy.sh` fingerprints the version-controlled files and skips any component that hasn't changed.
+
+### Users (Cognito, invite-only)
 
 ```bash
-cd frontend
-npm run dev          # Start dev server (http://localhost:5173)
-npm run build        # Production build
-npm run preview      # Preview production build
-npm run test         # Run unit tests
-npm run test:e2e     # Run E2E tests
+make create-admin EMAIL=you@email.com PASSWORD='Temp.123!' ENV=test
+make create-user  EMAIL=x@email.com   PASSWORD='Temp.123!' ROLE=USER ENV=test
+make set-password EMAIL=x@email.com   PASSWORD='New.Secure123!' ENV=test
 ```
 
-### Backend Development
+On first login Cognito requires changing the password and setting up TOTP MFA.
+
+## CI/CD
+
+`.github/workflows/pipeline.yml`: on every push it runs `lint → test → build` (including a `cdk synth` validation). It deploys to `test` on non-`main` branches and to `prod` on `main`, via OIDC.
+
+In your repo, configure the `AWS_ROLE_FOR_GITHUB_DEPLOYMENTS` variable (an IAM role with an OIDC trust to GitHub) and the `test` and `prod` environments.
+
+## Useful commands
 
 ```bash
-cd backend
-npm run build        # Compile TypeScript
-npm run watch        # Watch mode
-npm run test         # Run tests
-npm run test:watch   # Watch mode for tests
+make help              # list all targets
+make build             # build shared + backend + frontend
+make validate          # quality:check (lint + css + typecheck + format) + tests
+make fix               # auto-fix lint + css + formatting
+make logs-lambdas ENV=test TYPE=errors
+make aws-credentials   # dump AWS_ACCESS_KEY_ID/SECRET/TOKEN from the env into the default profile
+make clean             # remove build artifacts
 ```
 
-### Infrastructure
+## License
 
-```bash
-cd infra/cdk
-npm run build        # Compile CDK app
-npm run synth        # Synthesize CloudFormation
-npm run deploy       # Deploy all stacks
-npm run diff         # Show changes
-npm run destroy      # Delete all stacks
-```
-
----
-
-## 🔧 Customization Guide
-
-### Adding a New Backend Service
-
-1. Create a new service folder:
-
-```bash
-mkdir -p backend/services/my-service
-```
-
-2. Add your Lambda handler:
-
-```typescript
-// backend/services/my-service/handler.ts
-import { APIGatewayProxyHandler } from 'aws-lambda';
-
-export const handler: APIGatewayProxyHandler = async (event) => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: 'Hello from my service!' }),
-  };
-};
-```
-
-3. Add it to your CDK stack:
-
-```typescript
-// infra/cdk/lib/backend-stack.ts
-const myFunction = new lambda.Function(this, 'MyFunction', {
-  runtime: lambda.Runtime.NODEJS_18_X,
-  handler: 'services/my-service/handler.handler',
-  code: lambda.Code.fromAsset('../../backend/dist'),
-});
-```
-
-### Adding AWS Resources
-
-The CDK makes it easy to add any AWS service:
-
-```typescript
-// DynamoDB Table
-const table = new dynamodb.Table(this, 'MyTable', {
-  partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-});
-
-// S3 Bucket
-const bucket = new s3.Bucket(this, 'MyBucket', {
-  encryption: s3.BucketEncryption.S3_MANAGED,
-});
-
-// Cognito User Pool
-const userPool = new cognito.UserPool(this, 'UserPool', {
-  selfSignUpEnabled: true,
-  signInAliases: { email: true },
-});
-```
-
-### Environment Variables
-
-Frontend (`.env.local`):
-
-```bash
-VITE_API_URL=https://your-api.execute-api.region.amazonaws.com
-VITE_USER_POOL_ID=your-pool-id
-VITE_CLIENT_ID=your-client-id
-```
-
-Backend (via CDK):
-
-```typescript
-const fn = new lambda.Function(this, 'Function', {
-  // ...
-  environment: {
-    TABLE_NAME: table.tableName,
-    BUCKET_NAME: bucket.bucketName,
-  },
-});
-```
-
----
-
-## 🧪 Testing
-
-### Unit Tests
-
-```bash
-# Frontend (Vitest)
-cd frontend
-npm run test
-
-# Backend (Jest)
-cd backend
-npm run test
-```
-
-### E2E Tests
-
-```bash
-cd frontend
-npm run test:e2e        # Headless mode
-npm run test:e2e:ui     # Interactive UI mode
-```
-
-### Infrastructure Tests
-
-```bash
-cd infra/cdk
-npm run test            # CDK snapshot tests
-```
-
----
-
-## 🚢 Deployment
-
-### Development Environment
-
-```bash
-cd infra/cdk
-cdk deploy --all --context environment=dev
-```
-
-### Production Environment
-
-```bash
-cdk deploy --all --context environment=prod
-```
-
-### CI/CD Integration
-
-The structure is ready for CI/CD. Example GitHub Actions:
-
-```yaml
-name: Deploy
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run build
-      - run: npm run test
-      - name: Deploy to AWS
-        run: |
-          cd infra/cdk
-          npm run deploy
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-```
-
----
-
-## 💡 Tips & Best Practices
-
-### Development Workflow
-
-1. **Start with the frontend**: Build your UI first, mock the API responses
-2. **Add backend services**: Implement Lambda functions as you need them
-3. **Deploy incrementally**: Deploy and test each feature in AWS
-4. **Use CDK outputs**: Share values between stacks (API URLs, bucket names, etc.)
-
-### Cost Optimization
-
-- **Lambda**: Pay only for execution time (generous free tier)
-- **S3 + CloudFront**: Pennies for static hosting
-- **DynamoDB**: On-demand pricing for variable workloads
-- **API Gateway**: Free tier covers development and small apps
-
-### Security
-
-- Enable CloudFront HTTPS by default
-- Use IAM roles for Lambda (never hardcode credentials)
-- Enable CloudWatch Logs for debugging
-- Use Cognito for authentication
-- Enable AWS WAF for production apps
-
----
-
-## 🤝 Contributing
-
-Found a bug or have a suggestion? Contributions are welcome!
-
-1. Fork the repository
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-1. Commit your changes (`git commit -m 'Add amazing feature'`)
-1. Push to the branch (`git push origin feature/amazing-feature`)
-1. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👤 Author
-
-Created and maintained by **Alejandro Lázaro Chueca**
-
-- Website: [playingaws.com](https://playingaws.com)
-- GitHub: [@alazaroc](https://github.com/alazaroc)
-- LinkedIn: [Alejandro Lázaro Chueca](https://linkedin.com/in/alejandro-lazaro-chueca)
-
----
-
-## 🙏 Acknowledgments
-
-- Built for developers who want to move fast
-- Inspired by real-world serverless projects
-- Powered by AWS serverless technologies
-
----
-
-## 📚 Resources
-
-- [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
-- [Vite Documentation](https://vitejs.dev/)
-- [React Documentation](https://react.dev/)
-- [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
-- [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
-
----
-
-## 💬 Support
-
-- Open an issue for bugs or feature requests
-- Visit [playingaws.com](https://playingaws.com) for tutorials and guides
-- Join the AWS community discussions
-
----
-
-**Ready to build something awesome?** Star this repo and start your serverless journey today! ⭐
-
-Made with ❤️ for the AWS community by [Alejandro Lázaro Chueca](https://playingaws.com)
+MIT — see [LICENSE](LICENSE).
