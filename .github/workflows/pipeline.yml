@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: {{AWS_REGION}}
+  AWS_REGION: "{{AWS_REGION}}"
   CI: true
 
 concurrency:
