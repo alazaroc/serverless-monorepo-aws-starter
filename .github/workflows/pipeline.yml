@@ -91,7 +91,9 @@ jobs:
           npx cdk synth --context env=test --quiet
         env:
           CDK_DEFAULT_ACCOUNT: "000000000000"
-          CDK_DEFAULT_REGION: ${{ env.AWS_REGION }}
+          # Region is irrelevant for a compile-only synth; use a fixed valid one
+          # so validation works even before {{AWS_REGION}} is replaced.
+          CDK_DEFAULT_REGION: "eu-west-1"
 
   # ─────────────────────────────────────────────────────────────
   # CD · Deploy to TEST (non-main branches, push only)
