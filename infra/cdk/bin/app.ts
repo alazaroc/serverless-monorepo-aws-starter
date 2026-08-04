@@ -12,8 +12,25 @@ const env = app.node.tryGetContext('env') ?? 'test';
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
 
+// Sanitize the project name so `cdk synth` stays valid even if the {{PROJECT_NAME}}
+// placeholder hasn't been replaced yet (e.g. CI running on the untouched template).
+// An already-valid slug (lowercase, digits, hyphens) passes through unchanged.
+function sanitizeProject(raw: string): string {
+  const slug = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!slug || raw.includes('{{')) {
+    console.warn(
+      '[cdk] PROJECT_NAME placeholder not replaced — using fallback "app-starter". Run the find/replace before deploying.'
+    );
+    return 'app-starter';
+  }
+  return slug;
+}
+
 const naming = new ResourceNaming({
-  project: '{{PROJECT_NAME}}',
+  project: sanitizeProject('{{PROJECT_NAME}}'),
   environment: env,
   account,
   version: '0.1.0',
