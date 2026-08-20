@@ -23,7 +23,7 @@ LAMBDAS := items shares users
 
 .DEFAULT_GOAL := help
 .PHONY: help install dev dev-env build build-shared \
-        test lint lint-fix fix typecheck format validate \
+        test lint lint-fix fix typecheck format quality-check validate \
         deploy deploy-backend deploy-frontend \
         create-user create-admin set-password logs-lambdas aws-credentials clean
 
@@ -85,6 +85,10 @@ typecheck:
 ## format: format the code with Prettier
 format:
 	npm run format
+
+## quality-check: lint + css + typecheck + format check (no tests)
+quality-check:
+	npm run quality:check
 
 ## validate: build shared + lint + css + typecheck + format check + test
 validate:

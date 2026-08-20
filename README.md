@@ -156,7 +156,7 @@ On first login Cognito requires changing the password and setting up TOTP MFA.
 
 `.github/workflows/pipeline.yml`: on every push it runs `lint → test → build` (including a `cdk synth` validation). It deploys to `test` on non-`main` branches and to `prod` on `main`, via OIDC.
 
-In your repo, configure the `AWS_ROLE_FOR_GITHUB_DEPLOYMENTS` variable (an IAM role with an OIDC trust to GitHub) and the `test` and `prod` environments.
+In your repo, configure the `AWS_ROLE_FOR_GITHUB_DEPLOYMENTS` variable (an IAM role with an OIDC trust to GitHub) and the `test` and `prod` environments. Until that variable is set, the deploy jobs are **skipped** (not failed), so CI stays green on a fresh clone.
 
 ## Useful commands
 
