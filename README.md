@@ -63,11 +63,13 @@ The `Item` entity (+ `shares`, `users` management) is a **generic example**: it 
 
 That's it. The rest of the flow (install, deploy, first user, develop) is the checklist below.
 
+> **Install with `npm ci`** (or `make install`), not `npm install`. `npm ci` wipes and rebuilds `node_modules` from the lockfile, so the install is clean and reproducible and you never end up with a half-extracted dependency (which can surface as puzzling TypeScript errors like a missing `.send()` on an AWS SDK client). Use `npm install` only when you are deliberately adding or upgrading a dependency.
+
 ## Next steps (checklist)
 
 Once cloned and with placeholders replaced:
 
-- [ ] `npm install && npm run build` is green.
+- [ ] `npm ci && npm run build` is green.
 - [ ] `cdk bootstrap aws://<account>/<region>` in your account (once).
 - [ ] `make deploy ENV=test` — first deploy (creates Cognito, DynamoDB, API, CloudFront).
 - [ ] `make create-admin EMAIL=you@email.com PASSWORD='Temp.123!' ENV=test` — your first user.

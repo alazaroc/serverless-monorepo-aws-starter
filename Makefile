@@ -40,9 +40,9 @@ help:
 
 # ── Development ──────────────────────────────────────────────────────────────
 
-## install: install dependencies (npm workspaces)
+## install: install dependencies from the lockfile (clean, reproducible)
 install:
-	npm install
+	npm ci
 
 ## dev: run the frontend locally (Vite, reads frontend/.env — no AWS credentials)
 dev:
