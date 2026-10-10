@@ -1,4 +1,19 @@
+<div align="center">
+
 # Serverless Monorepo AWS Starter
+
+**Skip the plumbing, ship the product.** A production-ready skeleton for a full-stack serverless web app on AWS — clone it, replace two placeholders, deploy.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)
+![AWS Serverless](https://img.shields.io/badge/AWS-serverless-FF9900?logo=amazonaws&logoColor=white)
+![AWS CDK](https://img.shields.io/badge/IaC-AWS%20CDK-232F3E?logo=amazonaws&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+🧩 Use this template → click **"Use this template"** above
+
+</div>
 
 A production-ready skeleton for a full-stack serverless web app on AWS. Clone it, replace two placeholders, deploy, and spend your time on the **product** — not on the plumbing.
 
