@@ -25,7 +25,10 @@ LAMBDAS := items shares users
 .PHONY: help install dev dev-env build build-shared \
         test lint lint-fix fix typecheck format quality-check validate \
         deploy deploy-backend deploy-frontend \
-        create-user create-admin set-password logs-lambdas aws-credentials clean
+        create-user create-admin set-password logs-lambdas aws-credentials release clean
+
+# release (empty BUMP → interactive; BUMP=patch|minor|major → non-interactive)
+BUMP ?=
 
 ## help: show this help
 help:
@@ -144,8 +147,14 @@ logs-lambdas:
 	  fi; \
 	done
 
-## aws-credentials: propagate AWS_ACCESS_KEY_ID/SECRET/TOKEN from the env to the default profile
+## aws-credentials: propagate AWS_ACCESS_KEY_ID/SECRET/TOKEN from env to a profile (Usage: make aws-credentials [profile])
 aws-credentials:
+	@echo "💡 Recommended: use AWS SSO instead of static keys:"
+	@echo "     aws sso login --sso-session personal"
+	@echo "   and run with the associated profile (webs | management | blog | audit | logarchive), e.g.:"
+	@echo "     AWS_PROFILE=webs make deploy"
+	@echo "   Use this target ONLY if you need to dump temporary credentials to a profile."
+	@echo ""
 	@if [ -z "$$AWS_ACCESS_KEY_ID" ] || [ -z "$$AWS_SECRET_ACCESS_KEY" ]; then \
 		echo "❌ Export the variables first:"; \
 		echo "  export AWS_ACCESS_KEY_ID=\"...\""; \
@@ -154,9 +163,58 @@ aws-credentials:
 		exit 1; \
 	fi
 	@mkdir -p ~/.aws
-	@printf '[default]\naws_access_key_id=%s\naws_secret_access_key=%s\naws_session_token=%s\n' \
-		"$$AWS_ACCESS_KEY_ID" "$$AWS_SECRET_ACCESS_KEY" "$$AWS_SESSION_TOKEN" > ~/.aws/credentials
-	@echo "✅ Credentials saved to ~/.aws/credentials (default profile)"
+	@PROF="$(word 2,$(MAKECMDGOALS))"; PROF=$${PROF:-default}; \
+	aws configure set aws_access_key_id "$$AWS_ACCESS_KEY_ID" --profile "$$PROF"; \
+	aws configure set aws_secret_access_key "$$AWS_SECRET_ACCESS_KEY" --profile "$$PROF"; \
+	if [ -n "$$AWS_SESSION_TOKEN" ]; then \
+		aws configure set aws_session_token "$$AWS_SESSION_TOKEN" --profile "$$PROF"; \
+	fi; \
+	echo "✅ Credentials saved to ~/.aws/credentials (profile $$PROF)"
+
+# ── Release ──────────────────────────────────────────────────────────────────
+# Bumps the version in package.json (single source of truth), validates, commits, tags and pushes.
+
+## release: validate + bump version + commit + tag + push (+ draft GitHub Release if the repo is public). No BUMP → interactive 1/2/3 (default minor); BUMP=patch|minor|major → non-interactive.
+release:
+	@git diff --quiet && git diff --cached --quiet || \
+	  (echo "❌ Uncommitted changes. Commit or stash before release." && exit 1)
+	@BUMP="$(BUMP)"; \
+	if [ -z "$$BUMP" ]; then \
+	  echo "Which version bump do you want?"; \
+	  echo "  1) major  (x.0.0 — big / breaking change)"; \
+	  echo "  2) minor  (0.x.0 — new feature)  [default]"; \
+	  echo "  3) patch  (0.0.x — small fix)"; \
+	  printf "Option [1/2/3] (Enter = 2): "; \
+	  read OPT; \
+	  case "$$OPT" in \
+	    1) BUMP=major ;; \
+	    3) BUMP=patch ;; \
+	    *) BUMP=minor ;; \
+	  esac; \
+	fi; \
+	echo "→ Bumping version: $$BUMP"; \
+	npm run validate && \
+	npm version $$BUMP -m "Release v%s" && \
+	git push --follow-tags && \
+	TAG=v$$(node -p "require('./package.json').version"); \
+	if gh repo view --json visibility -q .visibility 2>/dev/null | grep -q PUBLIC; then \
+	  PREV=$$(git describe --tags --abbrev=0 "$$TAG^" 2>/dev/null); \
+	  if [ -n "$$PREV" ]; then RANGE="$$PREV..$$TAG"; else RANGE="$$TAG"; fi; \
+	  NOTES=$$(git log --no-merges --pretty='- %s' "$$RANGE" | grep -vE '^- Release v' || true); \
+	  if [ -z "$$NOTES" ]; then NOTES="- No notable changes."; fi; \
+	  BODY=$$(printf '## What'"'"'s Changed\n\n%s\n' "$$NOTES"); \
+	  if [ -n "$$PREV" ]; then \
+	    REPO=$$(gh repo view --json nameWithOwner -q .nameWithOwner); \
+	    BODY=$$(printf '%s\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$$BODY" "$$REPO" "$$PREV" "$$TAG"); \
+	  fi; \
+	  URL=$$(gh release create "$$TAG" --notes "$$BODY" --draft --title "$$TAG") && \
+	  echo "" && \
+	  echo "📝 Draft GitHub Release created for public repo: $$TAG" && \
+	  echo "   Review and publish it manually at:" && \
+	  echo "   $$URL"; \
+	else \
+	  echo "✅ Private release (tag only): $$TAG"; \
+	fi
 
 # ── Cleanup ──────────────────────────────────────────────────────────────────
 
@@ -165,3 +223,9 @@ clean:
 	rm -rf shared/dist backend/dist frontend/dist
 	rm -rf infra/cdk/cdk.out
 	rm -rf .deploy-hashes
+
+# Catch-all: allows positional arguments for targets like aws-credentials
+ifneq ($(filter aws-credentials,$(MAKECMDGOALS)),)
+%:
+	@:
+endif
