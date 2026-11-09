@@ -1,9 +1,12 @@
+import { useRef } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import PullToRefresh from '../../components/ui/PullToRefresh';
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLElement>(null);
 
   const onLogout = async () => {
     await logout();
@@ -34,8 +37,10 @@ export default function AppLayout() {
           </button>
         </div>
       </header>
-      <main className="app-main">
-        <Outlet />
+      <main ref={mainRef} className="app-main relative">
+        <PullToRefresh scrollRef={mainRef}>
+          <Outlet />
+        </PullToRefresh>
       </main>
     </div>
   );
